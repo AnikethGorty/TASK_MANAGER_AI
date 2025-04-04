@@ -3,9 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '@/components/Header';
 import TaskList from '@/components/TaskList';
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationNext, 
+  PaginationPrevious 
+} from '@/components/ui/pagination';
 
 // Mock data - would come from Flask/Backend
 const mockTasks = [
@@ -37,6 +44,7 @@ const ProjectTasks = () => {
   const [tasks, setTasks] = useState(mockTasks);
   const [projectName, setProjectName] = useState('');
   const [redirect, setRedirect] = useState<string | null>(null);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   
   useEffect(() => {
     // Here we would fetch project details and tasks from Flask backend
@@ -62,6 +70,22 @@ const ProjectTasks = () => {
 
   const handleTaskClick = (taskId: number) => {
     setRedirect(`/manager/project/${projectId}/task/${taskId}`);
+  };
+
+  const handlePreviousTask = () => {
+    if (tasks.length === 0) return;
+    
+    const newIndex = currentTaskIndex > 0 ? currentTaskIndex - 1 : tasks.length - 1;
+    setCurrentTaskIndex(newIndex);
+    setRedirect(`/manager/project/${projectId}/task/${tasks[newIndex].id}`);
+  };
+
+  const handleNextTask = () => {
+    if (tasks.length === 0) return;
+    
+    const newIndex = currentTaskIndex < tasks.length - 1 ? currentTaskIndex + 1 : 0;
+    setCurrentTaskIndex(newIndex);
+    setRedirect(`/manager/project/${projectId}/task/${tasks[newIndex].id}`);
   };
 
   if (redirect) {
@@ -90,7 +114,25 @@ const ProjectTasks = () => {
           </CardHeader>
           <CardContent>
             {tasks.length > 0 ? (
-              <TaskList tasks={tasks} onTaskClick={handleTaskClick} />
+              <>
+                <TaskList tasks={tasks} onTaskClick={handleTaskClick} />
+                <Pagination className="mt-6">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={handlePreviousTask} 
+                        className="cursor-pointer"
+                      />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={handleNextTask} 
+                        className="cursor-pointer"
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </>
             ) : (
               <div className="text-center p-8 text-gray-500">
                 No tasks found for this project. Create a new task to get started.

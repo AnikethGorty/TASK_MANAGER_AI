@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import { toast } from 'sonner';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import EmployeeCard from '@/components/EmployeeCard';
 
 // Mock data that would be returned from TASK_ALLOCATOR.py
@@ -42,13 +42,39 @@ const mockTaskAllocationData = {
   ]
 };
 
+// Mock tasks data
+const mockTasks = [
+  { 
+    id: 1, 
+    title: 'Design Homepage', 
+    description: 'Create mockups for the new homepage', 
+    skills: ['UI/UX', 'Figma'], 
+    deadline: '2025-04-20' 
+  },
+  { 
+    id: 2, 
+    title: 'Setup Database', 
+    description: 'Configure and initialize the SQL database', 
+    skills: ['SQL', 'Database Design'], 
+    deadline: '2025-04-15' 
+  },
+  { 
+    id: 3, 
+    title: 'Implement User Authentication', 
+    description: 'Create login and registration functionality', 
+    skills: ['Security', 'Flask', 'Python'], 
+    deadline: '2025-04-25' 
+  }
+];
+
 const TaskAllocation = () => {
   const { projectId, taskId } = useParams<{ projectId: string, taskId: string }>();
   const [allocationData, setAllocationData] = useState(mockTaskAllocationData);
   const [selectedEmployee, setSelectedEmployee] = useState<number | null>(null);
   const [redirect, setRedirect] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [tasks, setTasks] = useState(mockTasks);
+  
   useEffect(() => {
     // Here we would fetch data from TASK_ALLOCATOR.py via Flask backend
     // For now, we're using mock data
@@ -89,6 +115,28 @@ const TaskAllocation = () => {
     }
   };
 
+  const handlePreviousTask = () => {
+    if (tasks.length === 0) return;
+    
+    const currentTaskIdNum = parseInt(taskId || '0', 10);
+    const currentTaskIndex = tasks.findIndex(task => task.id === currentTaskIdNum);
+    if (currentTaskIndex === -1) return;
+    
+    const newIndex = currentTaskIndex > 0 ? currentTaskIndex - 1 : tasks.length - 1;
+    setRedirect(`/manager/project/${projectId}/task/${tasks[newIndex].id}/allocation`);
+  };
+
+  const handleNextTask = () => {
+    if (tasks.length === 0) return;
+    
+    const currentTaskIdNum = parseInt(taskId || '0', 10);
+    const currentTaskIndex = tasks.findIndex(task => task.id === currentTaskIdNum);
+    if (currentTaskIndex === -1) return;
+    
+    const newIndex = currentTaskIndex < tasks.length - 1 ? currentTaskIndex + 1 : 0;
+    setRedirect(`/manager/project/${projectId}/task/${tasks[newIndex].id}/allocation`);
+  };
+
   if (redirect) {
     return <Navigate to={redirect} />;
   }
@@ -111,6 +159,26 @@ const TaskAllocation = () => {
     <div className="min-h-screen bg-blue-50">
       <Header title="Task Allocation" />
       <main className="container mx-auto p-4">
+        {/* Navigation controls */}
+        <div className="flex justify-between items-center mb-4">
+          <Button 
+            variant="outline" 
+            onClick={handlePreviousTask}
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous Task
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleNextTask}
+            className="flex items-center gap-2"
+          >
+            Next Task
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        
         <Card className="shadow-md border-blue-100 mb-6">
           <CardHeader>
             <CardTitle className="text-xl text-blue-700">Task: {allocationData.taskName}</CardTitle>
